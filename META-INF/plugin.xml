@@ -1,0 +1,49 @@
+<idea-plugin version="2">
+  <id>com.linuxgods.kreiger.idea.gradle.simple</id>
+  <name>Gradle Simple Build</name>
+  <version>1.0</version>
+  <vendor email="christoffer.hammarstrom@kreiger.linuxgods.com" url="http://kreiger.linuxgods.com">Christoffer Hammarström</vendor>
+
+  <description><![CDATA[
+    Simple Gradle Build without the project configuration overhead.
+    ]]></description>
+
+  <change-notes><![CDATA[
+    ]]>
+  </change-notes>
+
+  <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
+  <idea-version since-build="131"/>
+
+  <!-- please see https://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
+       on how to target different products -->
+  <!-- uncomment to enable plugin in all products
+  <depends>com.intellij.modules.lang</depends>
+  -->
+
+  <depends>com.intellij.modules.all</depends>
+  <depends>org.jetbrains.plugins.gradle</depends>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceInterface="com.linuxgods.kreiger.idea.gradle.simple.GradleConfiguration" serviceImplementation="com.linuxgods.kreiger.idea.gradle.simple.GradleConfigurationImpl"/>
+
+    <toolWindow id="Gradle Build" anchor="right" factoryClass="com.linuxgods.kreiger.idea.gradle.simple.GradleBuildToolWindowFactory" />
+    <!-- Add your extensions here -->
+  </extensions>
+
+  <application-components>
+    <!-- Add your application components here -->
+  </application-components>
+
+  <project-components>
+    <!-- Add your project components here -->
+  </project-components>
+
+  <actions>
+    <action id="AddGradleBuildFile" class="com.linuxgods.kreiger.idea.gradle.simple.AddGradleBuildFile" text="Add as Gradle Build File" >
+      <add-to-group group-id="EditorPopupMenu" relative-to-action="AddAntBuildFile" anchor="after"/>
+      <add-to-group group-id="ProjectViewPopupMenu" relative-to-action="AddAntBuildFile" anchor="after"/>
+    </action>
+  </actions>
+
+</idea-plugin>
