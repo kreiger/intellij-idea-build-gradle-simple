@@ -8,16 +8,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowId;
-import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.*;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.ui.content.MessageView;
-import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.ResultHandler;
+import org.apache.commons.io.output.WriterOutputStream;
+import org.gradle.tooling.*;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
@@ -27,6 +23,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,7 +92,7 @@ public class GradleBuildFile {
             return name;
         }
 
-        public void execute(Project project) {
+        public void execute(final Project project) {
             MessageView messageView = MessageView.SERVICE.getInstance(project);
             ConsoleView console = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
             ContentManager contentManager = messageView.getContentManager();
@@ -122,33 +120,40 @@ public class GradleBuildFile {
                             refreshDirectory();
                         }
                     });
+
         }
 
         private class SimpleProcessHandler extends ProcessHandler {
 
             @NotNull
             public OutputStream createOutputStream(final Key key) {
-                return new OutputStream() {
+                return new WriterOutputStream(new Writer() {
                     @Override
-                    public void write(int b) throws IOException {
-                        notifyTextAvailable("" + (char) b, key);
+                    public void write(char[] cbuf, int off, int len) throws IOException {
+                        notifyTextAvailable(new String(cbuf, off, len), key);
                     }
-                };
+
+                    @Override
+                    public void flush() throws IOException {
+                    }
+
+                    @Override
+                    public void close() throws IOException {
+                    }
+                }, StandardCharsets.UTF_8);
             }
 
             @Override
             protected void destroyProcessImpl() {
-                throw new UnsupportedOperationException();
             }
 
             @Override
             protected void detachProcessImpl() {
-                throw new UnsupportedOperationException();
             }
 
             @Override
             public boolean detachIsDefault() {
-                throw new UnsupportedOperationException();
+                return true;
             }
 
             @Nullable
