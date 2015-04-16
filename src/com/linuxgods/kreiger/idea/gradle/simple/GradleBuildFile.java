@@ -5,7 +5,10 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -103,6 +106,10 @@ public class GradleBuildFile {
             final SimpleProcessHandler processHandler = new SimpleProcessHandler();
             console.attachToProcess(processHandler);
             getProjectConnection().newBuild().forTasks(name).setStandardOutput(processHandler.getProcessInput()).run();
+            VirtualFile directory = LocalFileSystem.getInstance().findFileByIoFile(getDirectory());
+            if (null != directory) {
+                directory.refresh(true, true);
+            }
         }
 
         private class SimpleProcessHandler extends ProcessHandler {
