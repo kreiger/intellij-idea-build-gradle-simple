@@ -5,21 +5,23 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.ui.content.MessageView;
+import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -105,20 +107,34 @@ public class GradleBuildFile {
             }
             final SimpleProcessHandler processHandler = new SimpleProcessHandler();
             console.attachToProcess(processHandler);
-            getProjectConnection().newBuild().forTasks(name).setStandardOutput(processHandler.getProcessInput()).run();
-            VirtualFile directory = LocalFileSystem.getInstance().findFileByIoFile(getDirectory());
-            if (null != directory) {
-                directory.refresh(true, true);
-            }
+            getProjectConnection().newBuild()
+                    .forTasks(name)
+                    .setStandardOutput(processHandler.createOutputStream(ProcessOutputTypes.STDOUT))
+                    .setStandardError(processHandler.createOutputStream(ProcessOutputTypes.STDERR))
+                    .run(new ResultHandler<Void>() {
+                        @Override
+                        public void onComplete(Void aVoid) {
+                            refreshDirectory();
+                        }
+
+                        @Override
+                        public void onFailure(GradleConnectionException e) {
+                            refreshDirectory();
+                        }
+                    });
         }
 
         private class SimpleProcessHandler extends ProcessHandler {
-            OutputStream processInput = new OutputStream() {
-                @Override
-                public void write(int b) throws IOException {
-                    notifyTextAvailable("" + (char) b, ProcessOutputTypes.STDOUT);
-                }
-            };
+
+            @NotNull
+            public OutputStream createOutputStream(final Key key) {
+                return new OutputStream() {
+                    @Override
+                    public void write(int b) throws IOException {
+                        notifyTextAvailable("" + (char) b, key);
+                    }
+                };
+            }
 
             @Override
             protected void destroyProcessImpl() {
@@ -138,8 +154,15 @@ public class GradleBuildFile {
             @Nullable
             @Override
             public OutputStream getProcessInput() {
-                return processInput;
+                return null;
             }
+        }
+    }
+
+    private void refreshDirectory() {
+        VirtualFile directory = LocalFileSystem.getInstance().findFileByIoFile(getDirectory());
+        if (null != directory) {
+            directory.refresh(true, true);
         }
     }
 }
