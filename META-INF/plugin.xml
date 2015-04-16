@@ -2,7 +2,7 @@
   <id>com.linuxgods.kreiger.idea.gradle.simple</id>
   <name>Gradle Simple Build</name>
   <version>1.0</version>
-  <vendor email="christoffer.hammarstrom@kreiger.linuxgods.com" url="http://kreiger.linuxgods.com">Christoffer Hammarström</vendor>
+  <vendor email="kreiger@linuxgods.com" url="http://kreiger.linuxgods.com">Christoffer Hammarström</vendor>
 
   <description><![CDATA[
     Simple Gradle Build without the project configuration overhead.
