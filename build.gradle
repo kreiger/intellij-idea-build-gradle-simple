@@ -38,7 +38,7 @@ distributions {
     main {
         contents {
             from configurations.compile
-            from configurations.archives
+            from jar.archivePath
             into 'lib'
         }
     }
