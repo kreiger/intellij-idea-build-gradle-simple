@@ -1,0 +1,50 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "gradle.plugin.org.jetbrains:gradle-intellij-plugin:1.0-SNAPSHOT"
+    }
+}
+
+apply plugin: "org.jetbrains.intellij"
+apply plugin: "distribution"
+
+repositories {
+    flatDir {
+        dirs 'lib'
+    }
+    mavenCentral()
+    jcenter()
+}
+
+
+dependencies {
+    compile 'commons-io:commons-io:2.4'
+    compile('org.gradle:gradle-tooling-api:2.3') {
+        transitive = false
+    }
+}
+
+/*
+idea {
+    plugins = [ 'gradle' ]
+}
+*/
+
+distributions {
+    main {
+        contents {
+            from configurations.compile
+            from configurations.archives
+            into 'lib'
+        }
+    }
+}
+
+distZip.dependsOn jar
+distTar.enabled = false
+
+defaultTasks 'build'
