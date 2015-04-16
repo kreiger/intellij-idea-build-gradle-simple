@@ -15,6 +15,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.treeStructure.Tree;
+import org.gradle.tooling.GradleConnector;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -68,17 +69,7 @@ public class GradleExplorer extends SimpleToolWindowPanel implements Disposable 
             Object element = nodeDescriptor.getElement();
             if (element instanceof GradleBuildFile.Task) {
                 GradleBuildFile.Task task = (GradleBuildFile.Task) element;
-                GeneralCommandLine commandLine = new GeneralCommandLine("gradle", task.getName())
-                        .withWorkDirectory(task.getBuildFile().getDirectory());
-                try {
-                    JUnitProcessHandler.runCommandLine(commandLine);
-                } catch (final ExecutionException e2) {
-                    ApplicationManager.getApplication().invokeLater(new Runnable() {
-                        public void run() {
-                            ExecutionErrorDialog.show(e2, "Could not start process", project);
-                        }
-                    });
-                }
+                task.execute();
             }
         }
     }

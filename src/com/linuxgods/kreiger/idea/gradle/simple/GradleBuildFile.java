@@ -17,9 +17,8 @@ public class GradleBuildFile {
     private final File directory;
 
     public GradleBuildFile(VirtualFile buildFile) {
-        GradleConnector gradleConnector = GradleConnector.newConnector();
         directory = new File(buildFile.getParent().getCanonicalPath());
-        ProjectConnection projectConnection = gradleConnector.forProjectDirectory(directory).connect();
+        ProjectConnection projectConnection = getProjectConnection();
         try {
             GradleProject project = projectConnection.getModel(GradleProject.class);
             this.name = project.getName();
@@ -31,6 +30,11 @@ public class GradleBuildFile {
             projectConnection.close();
         }
 
+    }
+
+    private ProjectConnection getProjectConnection() {
+        GradleConnector gradleConnector = GradleConnector.newConnector();
+        return gradleConnector.forProjectDirectory(directory).connect();
     }
 
     public String getName() {
@@ -69,6 +73,10 @@ public class GradleBuildFile {
 
         public String getName() {
             return name;
+        }
+
+        public void execute() {
+            getProjectConnection().newBuild().forTasks(name).run();
         }
     }
 }
