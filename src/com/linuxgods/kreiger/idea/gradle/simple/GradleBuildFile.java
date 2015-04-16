@@ -39,14 +39,21 @@ public class GradleBuildFile {
         try {
             GradleProject project = projectConnection.getModel(GradleProject.class);
             this.name = project.getName();
-            DomainObjectSet<? extends GradleTask> tasks = project.getTasks();
-            for (GradleTask task : tasks) {
-                this.tasks.add(new Task(task));
-            }
+            addTasks("", project);
         } finally {
             projectConnection.close();
         }
 
+    }
+
+    private void addTasks(String projectName, GradleProject project) {
+        DomainObjectSet<? extends GradleTask> tasks = project.getTasks();
+        for (GradleTask task : tasks) {
+            this.tasks.add(new Task(projectName + ":" + task.getName()));
+        }
+        for (GradleProject child : project.getChildren()) {
+            addTasks(projectName+":"+child.getName(), child);
+        }
     }
 
     private ProjectConnection getProjectConnection() {
@@ -75,8 +82,8 @@ public class GradleBuildFile {
 
         private final String name;
 
-        public Task(GradleTask task) {
-            this.name = task.getName();
+        public Task(String name) {
+            this.name = name;
         }
 
         @Override
@@ -120,7 +127,6 @@ public class GradleBuildFile {
                             refreshDirectory();
                         }
                     });
-
         }
 
         private class SimpleProcessHandler extends ProcessHandler {
