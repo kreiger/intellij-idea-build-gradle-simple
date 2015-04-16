@@ -1,13 +1,27 @@
 package com.linuxgods.kreiger.idea.gradle.simple;
 
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessOutputTypes;
+import com.intellij.execution.ui.ConsoleView;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.ui.content.Content;
+import com.intellij.ui.content.ContentManager;
+import com.intellij.ui.content.MessageView;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.GradleTask;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,8 +89,50 @@ public class GradleBuildFile {
             return name;
         }
 
-        public void execute() {
-            getProjectConnection().newBuild().forTasks(name).run();
+        public void execute(Project project) {
+            MessageView messageView = MessageView.SERVICE.getInstance(project);
+            ConsoleView console = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
+            ContentManager contentManager = messageView.getContentManager();
+            Content content = contentManager.getFactory().createContent(console.getComponent(), getBuildFile().getName() + " " + name, true);
+            contentManager.addContent(content);
+            contentManager.setSelectedContent(content);
+            final ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.MESSAGES_WINDOW);
+            if (tw != null) {
+                tw.activate(null, false);
+            }
+            final SimpleProcessHandler processHandler = new SimpleProcessHandler();
+            console.attachToProcess(processHandler);
+            getProjectConnection().newBuild().forTasks(name).setStandardOutput(processHandler.getProcessInput()).run();
+        }
+
+        private class SimpleProcessHandler extends ProcessHandler {
+            OutputStream processInput = new OutputStream() {
+                @Override
+                public void write(int b) throws IOException {
+                    notifyTextAvailable("" + (char) b, ProcessOutputTypes.STDOUT);
+                }
+            };
+
+            @Override
+            protected void destroyProcessImpl() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            protected void detachProcessImpl() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean detachIsDefault() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Nullable
+            @Override
+            public OutputStream getProcessInput() {
+                return processInput;
+            }
         }
     }
 }

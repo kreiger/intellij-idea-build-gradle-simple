@@ -1,21 +1,15 @@
 package com.linuxgods.kreiger.idea.gradle.simple;
 
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.junit.JUnitProcessHandler;
-import com.intellij.execution.util.ExecutionErrorDialog;
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.IndexComparator;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.treeStructure.Tree;
-import org.gradle.tooling.GradleConnector;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -61,7 +55,7 @@ public class GradleExplorer extends SimpleToolWindowPanel implements Disposable 
         }.installOn(tree);
     }
 
-    private void runSelection(Tree tree, final Project project) {
+    private void runSelection(Tree tree, Project project) {
         TreePath[] selectionPaths = tree.getSelectionPaths();
         for (TreePath selectionPath : selectionPaths) {
             final Object userObject = ((DefaultMutableTreeNode) selectionPath.getLastPathComponent()).getUserObject();
@@ -69,7 +63,7 @@ public class GradleExplorer extends SimpleToolWindowPanel implements Disposable 
             Object element = nodeDescriptor.getElement();
             if (element instanceof GradleBuildFile.Task) {
                 GradleBuildFile.Task task = (GradleBuildFile.Task) element;
-                task.execute();
+                task.execute(project);
             }
         }
     }
