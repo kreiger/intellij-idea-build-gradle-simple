@@ -36,10 +36,10 @@ public class AddGradleBuildFile extends AnAction {
 
     @Override
     public void update(AnActionEvent e) {
-        VirtualFile myFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
-        boolean enabled = myFile != null;
+        VirtualFile file = e.getData(CommonDataKeys.VIRTUAL_FILE);
+        boolean enabled = file != null && file.getName().equals("build.gradle");
         e.getPresentation().setEnabled(enabled);
-        e.getPresentation().setVisible(true);
+        e.getPresentation().setVisible(enabled);
     }
 
 }
